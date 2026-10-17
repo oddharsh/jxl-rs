@@ -325,6 +325,8 @@ pub struct Frame {
     reference_frame_data: Option<Vec<Image<f32>>>,
     lf_frame_data: Option<[Image<f32>; 3]>,
     section0_render_up_to_date: bool,
+    /// All LF groups are decoded and `finalize_lf` has run, so the LF can be rendered.
+    pub(crate) lf_finalized: bool,
     group_status: GroupStatus,
     patches: Arc<RwLock<PatchesDictionary>>,
     splines: Arc<RwLock<Splines>>,
@@ -402,6 +404,15 @@ impl Frame {
                 parallel_runner,
             )?;
         }
+        // Set EPF sigma values to the correct values if we are doing EPF.
+        if self.header.restoration_filter.epf_iters > 0 {
+            *self.epf_sigma.try_write().unwrap() = SigmaSource::new(
+                &self.header,
+                self.lf_global.as_ref().unwrap(),
+                &self.hf_meta,
+            )?;
+        }
+        self.lf_finalized = true;
         Ok(())
     }
 

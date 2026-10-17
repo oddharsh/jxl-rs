@@ -300,6 +300,7 @@ impl Frame {
             reference_frame_data,
             lf_frame_data,
             section0_render_up_to_date: false,
+            lf_finalized: false,
             patches: Arc::new(RwLock::new(PatchesDictionary::new(num_extra_channels))),
             splines: Arc::new(RwLock::new(Splines::default())),
             noise: Arc::new(RwLock::new(Noise::default())),
@@ -628,14 +629,6 @@ impl Frame {
                 hf_coefficients,
                 use_i16,
             });
-        }
-        // Set EPF sigma values to the correct values if we are doing EPF.
-        if self.header.restoration_filter.epf_iters > 0 {
-            *self.epf_sigma.try_write().unwrap() = SigmaSource::new(
-                &self.header,
-                self.lf_global.as_ref().unwrap(),
-                &self.hf_meta,
-            )?;
         }
         Ok(())
     }

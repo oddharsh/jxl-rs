@@ -575,9 +575,13 @@ impl FrameInfo {
             return Ok(data_for_next_section);
         }
 
+        // The LF preview needs only the LF groups, so don't wait for HfGlobal.
+        if !frame.lf_finalized {
+            frame.finalize_lf(parallel_runner)?;
+        }
+
         if let Some(hf_global) = self.hf_global_section.take() {
             frame.decode_hf_global(&mut BitReader::new(&hf_global.data))?;
-            frame.finalize_lf(parallel_runner)?;
             self.section_state.hf_global_done = true;
         }
 
@@ -688,7 +692,7 @@ impl FrameInfo {
             }
         }
 
-        if frame.can_do_early_rendering() || self.section_state.hf_global_done {
+        if frame.can_do_early_rendering() || frame.lf_finalized {
             self.pixels_dirty |= frame.decode_and_render_hf_groups(
                 &mut Some(output_buffers),
                 pixel_format,

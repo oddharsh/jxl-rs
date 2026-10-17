@@ -243,7 +243,7 @@ impl Frame {
         }
 
         let has_decoded_data = match self.header.encoding {
-            Encoding::VarDCT => self.hf_global.is_some() || self.header.has_lf_frame(),
+            Encoding::VarDCT => self.lf_finalized || self.header.has_lf_frame(),
             Encoding::Modular => modular_global.has_decoded_data(),
         };
 
